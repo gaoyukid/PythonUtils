@@ -43,6 +43,7 @@ def main():
     list_size = ff.get_length()
     pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=list_size).start()
     ff.renameFiles(pbar.update)
+  
   print "\nmove complete\n"
   getDiskName = r"/Volumes/([^/]*)/.*$"
   greeting = "huh?"
@@ -66,5 +67,5 @@ def main():
     greeting = "enjoy"
   print greeting
 
-
-main()
+if __name__ == '__main__'
+  main()
