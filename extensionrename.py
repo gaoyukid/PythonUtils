@@ -11,48 +11,7 @@ from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
                         ProgressBar, ReverseBar, RotatingMarker, \
                         SimpleProgress, Timer
 
-
-level = 0
-
-#direction = "close"
-#if len(sys.argv) > 1:
-#  direction = sys.argv[1]
-
-
-
-
-
-
-
-
-def initMap(direction):
-  searchPattern = ""
-  extendNameDic = {
-                 "via":"avi",
-                 "mvw":"wmv",
-                 "4mp":"mp4",
-                 "sfa":"asf",
-                 "pmg":"mpg",
-                 "mvbr":"rmvb",
-                 "mr":"rm",
-                 "ivxd":"divx",
-                 "kvm":"mkv",
-                 "xas":"asx",
-                 "3mp":"mp3",
-                }
-  if direction != "open": 
-    # the direction is to close, reverse the dictionary
-    newNameDic = {}
-    for keyword in extendNameDic.keys():
-      valueword = extendNameDic[keyword]
-      newNameDic[valueword] = keyword
-    extendNameDic = newNameDic
-
-  for keyword in extendNameDic.keys():
-    searchPattern += keyword
-    searchPattern += "|"
-  searchPattern = searchPattern.rstrip('|')
-  return (extendNameDic, searchPattern)
+from model import FileFlips
 
 def main():
   #strfilepath = os.path.realpath(__file__)
@@ -62,18 +21,28 @@ def main():
   parser = argparse.ArgumentParser(description='open/close specific filenames')
   parser.add_argument('action',
                      help='open/close the filenames')
+  parser.add_argument('--test',
+                     help='test run only')
+  parser.add_argument('--dir',
+                     help='the working directory')
+
   args = parser.parse_args()
   print args
   #print args.accumulate(args.integers)
-  
   dir = os.getcwd()
+  if args.dir:
+    dir = args.dir
   print dir
   filename_list = []
   direction = args.action
-  getDirList(dir, filename_list, direction)
-  #import pdb
-  #pdb.set_trace()
-  renameFile(filename_list)
+  ff = FileFlips(dir,direction)
+
+  if args.test:
+    print ff.filename_list
+  else:
+    list_size = ff.get_length()
+    pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=list_size).start()
+    ff.renameFiles(pbar.update)
   print "\nmove complete\n"
   getDiskName = r"/Volumes/([^/]*)/.*$"
   greeting = "huh?"
@@ -92,61 +61,10 @@ def main():
       print "not a mounted volume? exit" 
     greeting = "bye bye"
   else:
-    cmd = "open ."
+    cmd = "open %s" % dir
     os.system(cmd)
     greeting = "enjoy"
   print greeting
 
-def getDirList( p, filename_list, direction):
-#  print "debug: now in p:", p
-  global level
-  if os.path.isdir(p):
-    L = os.listdir(p)
-    for l in L: 
-      fullname = p + "/" + l
-      if(os.path.isdir(fullname)):
-        #print "going into dir", fullname
-        level +=1
-        getDirList(fullname, filename_list, direction)
-        level -=1
-      else:
-        prepareFileList(fullname, level, filename_list, direction)
-  return
-    
-
-def prepareFileList(filename, level, filename_list, direction):
-  fpathandname , ftext = os.path.splitext(filename)
-  
-  (extendNameDic, searchPattern) = initMap(direction)
-  ftext = ftext.lstrip('.')
-  if re.search(searchPattern, ftext, re.IGNORECASE):
-    newname = fpathandname + "." + extendNameDic[ftext.lower()]
-    precedingSpace = level * 2
-    count = 0
-    precedingString = ""
-    while count < precedingSpace:
-      precedingString += " "
-      count +=1
-    filename_list.append((filename, newname))
-    #print precedingString,  "rename from", filename, "to", newname
-    #os.rename(filename, newname)
-
-def renameFile(filename_list):
-  list_size = len(filename_list)
-  if list_size > 0:
-    pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=list_size).start()
-    i = 0
-    #import time
-    for (filename, newname) in filename_list:
-      #time.sleep(0.5)
-      #print "from %s filename to %s" % (filename, newname)
-      
-      try:
-        os.rename(filename, newname)
-      except OSError as e:
-        print "cannot rename %s to %s" % (filename, newname)
-        print e
-      pbar.update(i+1)
-      i += 1
 
 main()
