@@ -14,14 +14,20 @@ from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
 
 level = 0
 
-direction = "close"
-if len(sys.argv) > 1:
-  direction = sys.argv[1]
-
-searchPattern = ""
+#direction = "close"
+#if len(sys.argv) > 1:
+#  direction = sys.argv[1]
 
 
-extendNameDic = {
+
+
+
+
+
+
+def initMap(direction):
+  searchPattern = ""
+  extendNameDic = {
                  "via":"avi",
                  "mvw":"wmv",
                  "4mp":"mp4",
@@ -34,19 +40,19 @@ extendNameDic = {
                  "xas":"asx",
                  "3mp":"mp3",
                 }
+  if direction != "open": 
+    # the direction is to close, reverse the dictionary
+    newNameDic = {}
+    for keyword in extendNameDic.keys():
+      valueword = extendNameDic[keyword]
+      newNameDic[valueword] = keyword
+    extendNameDic = newNameDic
 
-if direction != "open": 
-  # the direction is to close, reverse the dictionary
-  newNameDic = {}
   for keyword in extendNameDic.keys():
-    valueword = extendNameDic[keyword]
-    newNameDic[valueword] = keyword
-  extendNameDic = newNameDic
-
-for keyword in extendNameDic.keys():
-  searchPattern += keyword
-  searchPattern += "|"
-searchPattern = searchPattern.rstrip('|')
+    searchPattern += keyword
+    searchPattern += "|"
+  searchPattern = searchPattern.rstrip('|')
+  return (extendNameDic, searchPattern)
 
 def main():
   #strfilepath = os.path.realpath(__file__)
@@ -59,13 +65,14 @@ def main():
   args = parser.parse_args()
   print args
   #print args.accumulate(args.integers)
-  import pdb
-  pdb.set_trace()
+  
   dir = os.getcwd()
   print dir
   filename_list = []
-  getDirList(dir, filename_list)
-
+  direction = args.action
+  getDirList(dir, filename_list, direction)
+  #import pdb
+  #pdb.set_trace()
   renameFile(filename_list)
   print "\nmove complete\n"
   getDiskName = r"/Volumes/([^/]*)/.*$"
@@ -90,7 +97,7 @@ def main():
     greeting = "enjoy"
   print greeting
 
-def getDirList( p, filename_list ):
+def getDirList( p, filename_list, direction):
 #  print "debug: now in p:", p
   global level
   if os.path.isdir(p):
@@ -100,17 +107,17 @@ def getDirList( p, filename_list ):
       if(os.path.isdir(fullname)):
         #print "going into dir", fullname
         level +=1
-        getDirList(fullname, filename_list)
+        getDirList(fullname, filename_list, direction)
         level -=1
       else:
-        prepareFileList(fullname, level, filename_list)
+        prepareFileList(fullname, level, filename_list, direction)
   return
     
 
-def prepareFileList(filename, level, filename_list):
+def prepareFileList(filename, level, filename_list, direction):
   fpathandname , ftext = os.path.splitext(filename)
-  global searchPattern
-  global extendNameDic
+  
+  (extendNameDic, searchPattern) = initMap(direction)
   ftext = ftext.lstrip('.')
   if re.search(searchPattern, ftext, re.IGNORECASE):
     newname = fpathandname + "." + extendNameDic[ftext.lower()]
