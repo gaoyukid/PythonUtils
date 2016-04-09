@@ -63,9 +63,13 @@ def main():
     greeting = "bye bye"
   else:
     cmd = "open %s" % dir
-    os.system(cmd)
+    confirm = raw_input("open %s? [y/n]:" % dir)
+    if confirm == "y":
+      print "about to run: " + cmd
+      os.system(cmd)
+    #os.system(cmd)
     greeting = "enjoy"
   print greeting
 
-if __name__ == '__main__'
+if __name__ == '__main__':
   main()
