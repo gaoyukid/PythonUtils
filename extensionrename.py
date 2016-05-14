@@ -41,8 +41,9 @@ def main():
     print ff.filename_list
   else:
     list_size = ff.get_length()
-    pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=list_size).start()
-    ff.renameFiles(pbar.update)
+    if list_size > 0:
+      pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=list_size).start()
+      ff.renameFiles(pbar.update)
   
   print "\nmove complete\n"
   getDiskName = r"/Volumes/([^/]*)/.*$"
